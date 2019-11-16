@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+    xmlns="http://www.mulesoft.org/schema/mule/core"
+    xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="76b66ab6-2644-4d05-8443-a2c23fe14076" >
+        <http:listener-connection host="0.0.0.0" port="8082" />
+    </http:listener-config>
+    <http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="0a20b6db-78f7-446c-8a3f-d47a5b603ffa" >
+        <http:request-connection host="api.meteostat.net" protocol="HTTPS"/>
+    </http:request-config>
+    <flow name="weatherFlow" doc:id="f09631d3-9821-441d-9b70-e9091fb88173" >
+        <http:listener doc:name="Listener" doc:id="d637b447-aac5-46cb-a17e-6131aede5c13" config-ref="HTTP_Listener_config" path="/weather"/>
+        <http:request method="GET" doc:name="Request" doc:id="69efcb61-5c14-40c9-9bb1-6378da2a77d9" config-ref="HTTP_Request_configuration" path="/v1/history/daily">
+            <http:query-params ><![CDATA[#[output application/java
+---
+{
+    "start" : "2017-01-01",
+    "key" : "lR0cZrnk",
+    "end" : "2017-12-31",
+    "station" : "10637"
+}]]]></http:query-params>
+        </http:request>
+		<ee:transform doc:name="Transform Message" doc:id="d676f701-2c03-4b05-9a28-650a211cd4b8">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var x = payload.data map  $.temperature_max
+var y = payload.data.precipitation filter $ != null
+var z = payload.data map  $.temperature_min
+
+---
+[{"January_max_temp":max(x filter (item, index) -> index <31)},
+
+{"febrauary_max_temp": max((((x filter (item, index) -> index > 30))
+filter (item, index) -> index<28) )},
+{"march_max_temp": max((((x filter (item, index) -> index > 58))
+filter (item, index) -> index<31) )},
+{"april_max_temp": max((((x filter (item, index) -> index > 89))
+filter (item, index) -> index<30) )},
+{"may_max_temp": max((((x filter (item, index) -> index > 119))
+filter (item, index) -> index<31) )},
+{"june_max_temp": max((((x filter (item, index) -> index > 150))
+filter (item, index) -> index<30) )},
+{"july_max_temp": max((((x filter (item, index) -> index > 180))
+filter (item, index) -> index<31) )},
+{"august_max_temp": max((((x filter (item, index) -> index > 211))
+filter (item, index) -> index<31) )},
+{"september_max_temp": max((((x filter (item, index) -> index > 242))
+filter (item, index) -> index<30) )},
+{"october_max_temp": max((((x filter (item, index) -> index > 272))
+filter (item, index) -> index<31) )},
+{"november_max_temp": max((((x filter (item, index) -> index > 303))
+filter (item, index) -> index<30) )},
+{"december_max_temp": max((((x filter (item, index) -> index > 333))
+filter (item, index) -> index<31) )},
+{"first_week_min_temp":min(z filter (item, index) -> index <7)},
+{"second_week_min_temp": min((((z filter (item, index) -> index > 6))
+filter (item, index) -> index<7) )},
+{"Third_week_min_temp": min((((z filter (item, index) -> index > 13))
+filter (item, index) -> index<7) )},
+{"fourth_week_min_temp": min((((z filter (item, index) -> index > 20))
+filter (item, index) -> index<7) )},
+
+{"fifth_week_min_temp": min((((z filter (item, index) -> index > 27))
+filter (item, index) -> index<7) )},
+{"sixth_week_min_temp": min((((z filter (item, index) -> index > 34))
+filter (item, index) -> index<7) )},
+{"seventh_week_min_temp": min((((z filter (item, index) -> index > 41))
+filter (item, index) -> index<7) )},
+{"eighth_week_min_temp": min((((z filter (item, index) -> index > 48))
+filter (item, index) -> index<7) )},
+
+{"ninth_week_min_temp": min((((z filter (item, index) -> index > 55))
+filter (item, index) -> index<7) )},
+{"Tenth_week_min_temp": min((((z filter (item, index) -> index > 62))
+filter (item, index) -> index<7) )},
+{"Eleventh_week_min_temp": min((((z filter (item, index) -> index > 69))
+filter (item, index) -> index<7) )},
+{"Twelth_week_min_temp": min((((z filter (item, index) -> index > 75))
+filter (item, index) -> index<7) )},
+{"Thirteenth_week_min_temp": min((((z filter (item, index) -> index > 82))
+filter (item, index) -> index<7) )},
+{"Fourtheenth_week_min_temp": min((((z filter (item, index) -> index > 89))
+filter (item, index) -> index<7) )},
+{"Fifteenth_week_min_temp": min((((z filter (item, index) -> index > 96))
+filter (item, index) -> index<7) )},
+
+{"January_avg_precipitation":avg(y filter (item, index) -> index <31)},
+
+{"febrauary_avg_precipitation": avg((((y filter (item, index) -> index > 30))
+filter (item, index) -> index<28) )},
+{"march_avg_precipitation": avg((((y filter (item, index) -> index > 58))
+filter (item, index) -> index<31) )},
+{"april_avg_precipitation": avg((((y filter (item, index) -> index > 89))
+filter (item, index) -> index<30) )},
+{"mayapril_avg_precipitation": avg((((y filter (item, index) -> index > 85))
+filter (item, index) -> index<31) )},
+{"juneapril_avg_precipitation": avg((((y filter (item, index) -> index > 100))
+filter (item, index) -> index<30) )},
+{"juneapril_avg_precipitation": avg((((y filter (item, index) -> index > 120))
+filter (item, index) -> index<31) )},
+{"augustapril_avg_precipitation": avg((((y filter (item, index) -> index > 130))
+filter (item, index) -> index<31) )},
+{"septemberapril_avg_precipitation": avg((((y filter (item, index) -> index > 140))
+filter (item, index) -> index<30) )},
+{"octoberapril_avg_precipitation": avg((((y filter (item, index) -> index > 150))
+filter (item, index) -> index<31) )},
+{"novemberapril_avg_precipitation": avg((((y filter (item, index) -> index > 160))
+filter (item, index) -> index<30) )},
+{"decemberapril_avg_precipitation": avg((((y filter (item, index) -> index > 161))
+filter (item, index) -> index<31) )}
+
+]
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="70e76d07-d6ee-4497-b34f-2ebeb315d92d" />
+    
+</flow>
+</mule>
